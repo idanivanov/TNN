@@ -1,5 +1,10 @@
 *.class
 
+# II: Ignore project specific files and dirs #
+*.project
+*.classpath
+bin/
+
 # Package Files #
 *.jar
 *.war
