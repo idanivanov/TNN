@@ -21,7 +21,7 @@ public class MultiLayerPerzeptron {
 	
 	public static final int MAX_NEURONS = 1000;
 	public static final int MAX_LAYERS = 4;
-	public static final double TRAINING_RATE = .35;
+	public static final double LEARNING_RATE = .35;
 	
 	private Vector<Pattern> patterns;
 	private Vector<LayerWeights> weights;
@@ -170,7 +170,7 @@ public class MultiLayerPerzeptron {
 		
 		for (int i = 0; i < inputs.size(); i++) {
 			for (int o = 0; o < deltas.size(); o++) {
-				difference = MultiLayerPerzeptron.TRAINING_RATE * deltas.elementAt(o) * inputs.elementAt(i);
+				difference = MultiLayerPerzeptron.LEARNING_RATE * deltas.elementAt(o) * inputs.elementAt(i);
 				layerWeights.change(i, o, difference);
 			}
 		}
