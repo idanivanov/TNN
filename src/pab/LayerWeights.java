@@ -7,6 +7,10 @@ public class LayerWeights {
 	
 	private Vector<Vector<Double>> weights;
 	
+	public LayerWeights(Vector<Vector<Double>> weights) {
+		this.setWeights(weights);
+	}
+	
 	public LayerWeights(int inputLayerNeuronsCount, int outputLayerNeuronsCount) {
 		Random generator = new Random(0);
 		
@@ -21,6 +25,10 @@ public class LayerWeights {
 				weights.elementAt(i).add(4. * generator.nextDouble() - 2.);
 			}
 		}
+	}
+	
+	public void setWeights(Vector<Vector<Double>> weights) {
+		this.weights = weights;
 	}
 	
 	public double get(int i, int o) {

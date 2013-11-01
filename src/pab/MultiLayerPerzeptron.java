@@ -1,8 +1,17 @@
 package pab;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,9 +19,9 @@ import java.util.Vector;
 
 public class MultiLayerPerzeptron {
 	
-	public static int MAX_NEURONS = 1000;
-	public static int MAX_LAYERS = 4;
-	public static double TRAINING_RATE = .35;
+	public static final int MAX_NEURONS = 1000;
+	public static final int MAX_LAYERS = 4;
+	public static final double TRAINING_RATE = .35;
 	
 	private Vector<Pattern> patterns;
 	private Vector<LayerWeights> weights;
@@ -72,6 +81,68 @@ public class MultiLayerPerzeptron {
 		}
 		finally {
 			br.close();
+		}
+	}
+	
+	private byte[] toByteArray(double value) {
+	    byte[] bytes = new byte[8];
+	    ByteBuffer.wrap(bytes).putDouble(value);
+	    return bytes;
+	}
+
+	private double toDouble(byte[] bytes) {
+	    return ByteBuffer.wrap(bytes).getDouble();
+	}
+	
+	public void writeWeights(String filePath) throws IOException {
+		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
+		LayerWeights layerWeights;
+		Integer inputsCount;
+		
+		try {
+			for (int layer = 0; layer < this.weights.size(); layer++) {
+				layerWeights = this.weights.elementAt(layer);
+				inputsCount = this.structure[layer] + 1; // count of inputs + BIAS
+				bos.write(inputsCount.byteValue()); // write count of inputs + BIAS
+				bos.write(this.structure[layer + 1].byteValue()); // write count of outputs
+				for (int i = 0; i < inputsCount; i++) {
+					for (int o = 0, oo = this.structure[layer + 1]; o < oo; o++) {
+						bos.write(toByteArray(layerWeights.get(i, o))); // write weights
+					}
+				}
+			}
+		}
+		finally {
+			bos.close();
+		}
+	}
+	
+	public void readWeights(String filePath) throws IOException {
+		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(filePath));
+		Vector<Vector<Double>> layerWeightsVector;
+		Vector<Double> neuronWeights;
+		int inputsCount, outputsCount;
+		byte[] buffer = new byte[8];
+		
+		this.weights = new Vector<LayerWeights>();
+		
+		try {
+			while((inputsCount = bis.read()) != -1) {
+				outputsCount = bis.read();
+				layerWeightsVector = new Vector<Vector<Double>>(inputsCount);
+				for (int i = 0; i < inputsCount; i++) {
+					neuronWeights = new Vector<Double>(outputsCount);
+					for (int o = 0; o < outputsCount; o++) {
+						bis.read(buffer);
+						neuronWeights.add(toDouble(buffer));
+					}
+					layerWeightsVector.add(neuronWeights);
+				}
+				this.weights.add(new LayerWeights(layerWeightsVector));
+			}
+		}
+		finally {
+			bis.close();
 		}
 	}
 	
@@ -211,8 +282,11 @@ public class MultiLayerPerzeptron {
 		MultiLayerPerzeptron mlp = new MultiLayerPerzeptron(new Integer[]{4, 10, 10, 2});
 		mlp.readPatterns("data/training.dat");
 		mlp.printPatterns();
-		mlp.printWeights();
+		//mlp.printWeights();
 		mlp.teachByPatterns();
+		mlp.printWeights();
+		mlp.writeWeights("data/weights.tnn");
+		mlp.readWeights("data/weights.tnn");
 		mlp.printWeights();
 	}
 
